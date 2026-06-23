@@ -2502,9 +2502,8 @@
   <div id="freeMode" style="display:none;">
     <div class="free-prompt" id="freePrompt"></div>
     <textarea class="free-textarea" id="freeJournal" placeholder="자유롭게 기록하세요..."></textarea>
-    <button type="button" class="free-send-btn" id="freeToTableBtn" style="background:var(--accent-soft);border-color:var(--accent);color:var(--accent-strong)">📋 이 기록으로 시간표 만들기</button>
-    <button type="button" class="free-send-btn" id="freeSendBtn">📤 Claude에게 전송</button>
-    <div class="free-send-hint">탭하면 오늘 메모·블록 상태가 저장소로 전송됩니다. 폰에서 적어두면, 데스크탑에서 "반영해" 한 마디로 Claude가 읽고 시간표를 고칩니다.</div>
+    <button type="button" class="free-send-btn" id="freeSendBtn">📤 클로드에게 보내기</button>
+    <div class="free-send-hint">탭하면 ① 일기가 그대로 저장되고 ② 이 날짜의 시간표로 변환되고 ③ 클로드에게도 전송됩니다. 일기는 절대 지워지지 않습니다.</div>
   </div>
 
   <div class="history-section">
@@ -3040,7 +3039,7 @@ const OWNER_TEMPLATE = {
     { start: '07:30', end: '07:50', label: '외출 준비',              category: 'prep' },
     { start: '07:50', end: '08:50', label: '출근 (차 수면)',         category: 'prep' },
     { start: '08:50', end: '09:00', label: '도착 정리 / 휴식',       category: 'dopa' },
-    { start: '09:00', end: '11:00', label: 'TOEIC (월·수·금 실모)',  category: 'toeic' },
+    { start: '09:00', end: '11:00', label: '자유 학습',             category: 'app' },
     { start: '11:00', end: '14:00', label: '알바 (11시 바나나·쉐이크)', category: 'alba' },
     { start: '14:00', end: '14:30', label: '점심 (휴게)',            category: 'meal' },
     { start: '14:30', end: '15:00', label: '알바',                  category: 'alba', days: [1,2,3] },
@@ -3064,7 +3063,7 @@ const OWNER_TEMPLATE = {
     { start: '08:00', end: '08:50', label: '인문 독서 2',            category: 'read' },
     { start: '08:50', end: '09:05', label: '테니스 코트 예약',       category: 'exercise' },
     { start: '09:05', end: '09:40', label: '밥',                    category: 'meal' },
-    { start: '09:40', end: '11:40', label: '토익',                  category: 'toeic' },
+    { start: '09:40', end: '11:40', label: '자유 학습',             category: 'app' },
     { start: '11:40', end: '12:00', label: '외출 준비',              category: 'prep' },
     { start: '12:00', end: '13:10', label: '카페 이동',              category: 'prep' },
     { start: '13:10', end: '13:50', label: '점심 (카페)',            category: 'meal' },
@@ -3086,7 +3085,7 @@ const OWNER_TEMPLATE = {
     { start: '08:50', end: '09:05', label: '테니스 코트 예약',       category: 'exercise' },
     { start: '09:05', end: '10:00', label: '이동',                  category: 'prep' },
     { start: '10:00', end: '10:30', label: '도착 정리 + 간식',       category: 'meal' },
-    { start: '10:30', end: '12:30', label: 'TOEIC 실모',             category: 'toeic' },
+    { start: '10:30', end: '12:30', label: '자유 학습',             category: 'app' },
     { start: '12:30', end: '13:10', label: '점심',                  category: 'meal' },
     { start: '13:10', end: '13:30', label: '단어 가볍게',            category: 'toeic' },
     { start: '13:30', end: '13:50', label: '산책',                  category: 'exercise' },
@@ -5118,6 +5117,17 @@ async function copyClaudeReport() {
 const TM_INBOX_REPO = 'fodepu/time-manager';
 async function sendClaudeReport() {
   const text = buildClaudeReport();
+  try {
+    const _ta = document.getElementById('freeJournal');
+    const _txt = _ta ? _ta.value : '';
+    if (_txt && _txt.trim()) {
+      freeText = _txt;
+      saveFree(currentDate, { date: currentDate, freeText: _txt, savedAt: new Date().toISOString() });
+      const _bl = parseDayMemo(_txt);
+      if (_bl.length) { lsSet(lsKey('dayblocks_' + currentDate), _bl); if (currentMode === 'growth' && typeof renderItems === 'function') renderItems(); }
+      if (window.tmOnChange) window.tmOnChange();
+    }
+  } catch (e) {}
   let token = lsGet(lsKey('inbox_token')) || localStorage.getItem('tm_inbox_token');
   if (!token) {
     token = prompt('기록 전송용 GitHub 토큰을 붙여넣으세요 (한 번만 입력하면 모든 기기에 자동 저장됩니다):');
