@@ -7409,7 +7409,7 @@ window.mergeRemoteData = mergeRemoteData;
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithCredential, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -7423,6 +7423,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence).catch(function(){});
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
@@ -7470,9 +7471,9 @@ function tmInitGIS(){
       client_id: TM_WEB_CLIENT_ID,
       callback: async (resp)=>{
         tmShowErr('');
-        if(!resp || !resp.credential){ alert('GIS: 토큰을 못 받음'); return; }
-        try{ await signInWithCredential(auth, GoogleAuthProvider.credential(resp.credential)); alert('로그인 성공!'); }
-        catch(e){ tmShowErr((e&&e.code)||'오류'); alert('Firebase 로그인 실패\ncode: '+(e&&e.code)+'\nmsg: '+(e&&e.message)); }
+        if(!resp || !resp.credential){ tmShowErr('토큰을 못 받았습니다'); return; }
+        try{ await signInWithCredential(auth, GoogleAuthProvider.credential(resp.credential)); }
+        catch(e){ tmShowErr('로그인 실패: '+((e&&e.code)||(e&&e.message)||e)); }
       }
     });
     const el=document.getElementById('gsiButton');
