@@ -2360,6 +2360,15 @@
   .tm-auth-err{font-size:12px;color:var(--warn);min-height:16px;max-width:300px}
   .tm-auth-hidden{display:none!important}
   body.tm-locked .container{display:none}
+  .logo-mark { background: none !important; box-shadow: none !important; border-radius: 0 !important; display:flex; align-items:center; justify-content:center; overflow:visible; }
+  .logo-mark::after { content: none !important; display: none !important; }
+  .settings-wrap { position: relative; display: inline-flex; }
+  .settings-menu { position: absolute; right: 0; top: calc(100% + 6px); background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-lg); padding: 6px; min-width: 190px; z-index: 200; display: none; }
+  .settings-menu.open { display: block; }
+  .settings-item { display: block; width: 100%; text-align: left; background: none; border: none; padding: 11px 12px; border-radius: 7px; font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--text); cursor: pointer; white-space: nowrap; }
+  .settings-item:hover { background: var(--bg-hover); }
+  .settings-item.danger { color: var(--warn); }
+  .ctl-hidden { display: none !important; }
 </style>
 <script src="https://accounts.google.com/gsi/client" async></script>
 </head>
@@ -2375,20 +2384,27 @@
   <div class="header">
     <div class="header-top">
       <div class="logo">
-        <div class="logo-mark"></div>
+        <div class="logo-mark"><svg viewBox="0 0 180 180" width="24" height="24" fill="none" aria-hidden="true"><circle cx="82" cy="78" r="38" fill="none" stroke="#14b88a" stroke-width="13"/><line x1="82" y1="78" x2="82" y2="50" stroke="#14b88a" stroke-width="11" stroke-linecap="round"/><line x1="82" y1="78" x2="108" y2="91" stroke="#14b88a" stroke-width="11" stroke-linecap="round"/><circle cx="82" cy="78" r="6" fill="#14b88a"/><circle cx="120" cy="118" r="26" fill="#14b88a"/><path d="M107 118 l9 10 l17 -20" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <span>Time Manager</span>
       </div>
       <div class="header-actions">
-        <button class="icon-btn tm-auth-hidden" id="tmLogoutBtn" title="로그아웃" data-icon="logOut"></button>
-        <button class="icon-btn" id="reloadBtn" title="새로고침 (PWA 캐시 우회)" data-icon="refresh"></button>
-        <button class="icon-btn" id="syncBtn" title="동기화 / 로그인" data-icon="cloud">>
-          <span class="sync-dot" id="syncDot"></span>
-        </button>
-        <button class="icon-btn" id="lettersBtn" title="미래의 나에게 편지" data-icon="mail"></button>
-        <button class="icon-btn" id="dataBtn" title="데이터 백업/복원" data-icon="settings"></button>
-        <button class="icon-btn" id="alarmBtn" title="알람" data-icon="bell"></button>
-        <button class="icon-btn" id="themeBtn" title="다크 모드 전환" data-icon="moon"></button>
+        <button class="icon-btn" id="reloadBtn" title="새로고침" data-icon="refresh"></button>
         <button class="icon-btn" id="todayBtn" title="오늘로" data-icon="circleDot"></button>
+        <div class="settings-wrap">
+          <button class="icon-btn" id="settingsBtn" title="설정" data-icon="settings"></button>
+          <div class="settings-menu" id="settingsMenu">
+            <button type="button" class="settings-item" data-proxy="themeBtn">테마 (다크 / 라이트)</button>
+            <button type="button" class="settings-item" data-proxy="alarmBtn">알람</button>
+            <button type="button" class="settings-item" data-proxy="dataBtn">데이터 백업 / 복원</button>
+            <button type="button" class="settings-item danger" data-proxy="tmLogoutBtn">로그아웃</button>
+          </div>
+        </div>
+        <button class="icon-btn ctl-hidden" id="tmLogoutBtn" title="로그아웃" data-icon="logOut"></button>
+        <button class="icon-btn ctl-hidden" id="syncBtn" title="동기화" data-icon="cloud"><span class="sync-dot" id="syncDot"></span></button>
+        <button class="icon-btn ctl-hidden" id="lettersBtn" title="편지" data-icon="mail"></button>
+        <button class="icon-btn ctl-hidden" id="dataBtn" title="데이터 백업/복원" data-icon="settings"></button>
+        <button class="icon-btn ctl-hidden" id="alarmBtn" title="알람" data-icon="bell"></button>
+        <button class="icon-btn ctl-hidden" id="themeBtn" title="다크 모드 전환" data-icon="moon"></button>
       </div>
     </div>
     <div class="date-block">
@@ -7406,6 +7422,19 @@ function init() {
 window.init = init;
 window.collectLocalDataForSync = collectLocalDataForSync;
 window.mergeRemoteData = mergeRemoteData;
+</script>
+<script>
+(function(){
+  function bind(){
+    var btn=document.getElementById('settingsBtn'), menu=document.getElementById('settingsMenu');
+    if(!btn||!menu) return;
+    btn.addEventListener('click', function(e){ e.stopPropagation(); menu.classList.toggle('open'); });
+    var items=document.querySelectorAll('.settings-item');
+    for(var i=0;i<items.length;i++){ items[i].addEventListener('click', function(){ var t=document.getElementById(this.getAttribute('data-proxy')); menu.classList.remove('open'); if(t) t.click(); }); }
+    document.addEventListener('click', function(e){ if(!menu.contains(e.target) && !btn.contains(e.target)) menu.classList.remove('open'); });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind); else bind();
+})();
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
